@@ -11,8 +11,79 @@ interface MerchantDetailProps {
   merchantId: string
 }
 
+// Fungsi untuk men-generate data dinamis berdasarkan ID yang diklik
+const getDynamicDetail = (id: string) => {
+  // 1. Cari data merchant dari list tabel (jika ada)
+  const baseMerchant = mockData.merchants?.find((m: any) => m.id === id)
+  
+  // 2. Ambil referensi detail dari mockData (kalau ada struktur bawaannya)
+  const fallbackDetail = mockData.merchantDetail
+
+  // 3. Buat angka & status dinamis
+  const riskScore = baseMerchant?.riskScore || Math.floor(Math.random() * 40) + 40
+  const isCritical = riskScore >= 80
+  const isElevated = riskScore >= 50 && riskScore < 80
+  const cbRatio = baseMerchant?.chargebackRatio || (riskScore / 10).toFixed(1) + '%'
+  const refundStatus = baseMerchant?.refundVelocityStatus || (isCritical ? 'Critical' : 'Normal')
+  const refundValue = baseMerchant?.refundVelocity || (isCritical ? '+45%' : '+12%')
+
+  return {
+    id: id,
+    name: baseMerchant?.name || `Merchant Dynamic ${id.split('-')[1] || id}`,
+    mcc: baseMerchant?.mcc || fallbackDetail?.mcc || '5814',
+    dateAdded: fallbackDetail?.dateAdded || 'Oct 12, 2025',
+    interventionNeeded: isCritical,
+    interventionReason: isCritical ? 'Critical CB Ratio' : 'Elevated Risk',
+    compositeScore: riskScore,
+    riskIndicators: [
+      {
+        label: "Chargeback Rate",
+        status: isCritical ? 'Critical' : isElevated ? 'Elevated' : 'Normal',
+        value: cbRatio,
+        detail: "Last 30 days rolling average"
+      },
+      {
+        label: "Refund Velocity",
+        status: refundStatus,
+        value: refundValue,
+        detail: "Compared to previous 7 days"
+      },
+      {
+        label: "Auth Rate",
+        status: isCritical ? "Elevated" : "Normal",
+        value: isCritical ? "78.4%" : "94.2%",
+        detail: "Transaction approval rate"
+      },
+      {
+        label: "Fraud Flags",
+        status: isCritical ? "Critical" : "Normal",
+        value: isCritical ? "14" : "2",
+        detail: "AI detected anomalies"
+      }
+    ],
+    aiAnalysis: {
+      title: isCritical ? "High Risk Alert" : fallbackDetail?.aiAnalysis?.title || "Risk Pattern Detected",
+      alert: isCritical 
+        ? "High probability of chargeback surge detected in the next 7-14 days based on refund velocity." 
+        : fallbackDetail?.aiAnalysis?.alert || "Elevated friendly fraud probability detected based on recent refund patterns.",
+      pattern: isCritical
+        ? "Identical rapid transactions followed by immediate refunds."
+        : fallbackDetail?.aiAnalysis?.pattern || "Multiple identical value transactions from similar BIN ranges.",
+      mccCodes: [baseMerchant?.mcc || '5814', '5999'],
+      confidence: isCritical ? '94%' : fallbackDetail?.aiAnalysis?.confidence || '87%',
+      action: isCritical ? 'Hold Settlement' : fallbackDetail?.aiAnalysis?.action || 'Review Transactions'
+    },
+    stats: {
+      transactions: Math.floor(Math.random() * 4000) + 1000,
+      avgTxn: `$${(Math.random() * 200 + 50).toFixed(2)}`,
+      disputeRate: cbRatio
+    }
+  }
+}
+
 export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
-  const detail = mockData.merchantDetail
+  // Menggunakan data yang sudah dinamis berdasarkan merchantId
+  const detail = getDynamicDetail(merchantId)
 
   const getIndicatorColor = (status: string) => {
     if (status === 'Critical') return 'bg-red-100 text-red-700'
@@ -142,7 +213,7 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
                     cy="50"
                     r="45"
                     fill="none"
-                    stroke="#FF8C42"
+                    stroke={detail.compositeScore >= 80 ? '#ef4444' : detail.compositeScore >= 50 ? '#FF8C42' : '#22c55e'}
                     strokeWidth="8"
                     strokeDasharray={`${(detail.compositeScore / 100) * 283} 283`}
                     strokeLinecap="round"
@@ -151,7 +222,9 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-primary">{detail.compositeScore}</p>
+                    <p className={`text-3xl font-bold ${detail.compositeScore >= 80 ? 'text-red-500' : detail.compositeScore >= 50 ? 'text-primary' : 'text-green-500'}`}>
+                      {detail.compositeScore}
+                    </p>
                     <p className="text-xs text-muted-foreground">Score</p>
                   </div>
                 </div>
@@ -160,22 +233,44 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
               <div className="space-y-2 w-full">
                 <p className="text-sm text-muted-foreground mb-3">Risk Assessment</p>
                 
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <div className={`border rounded-lg p-3 ${
+                  detail.compositeScore >= 80 ? 'bg-red-50 border-red-200' : 
+                  detail.compositeScore >= 50 ? 'bg-orange-50 border-orange-200' : 
+                  'bg-green-50 border-green-200'
+                }`}>
                   <div className="flex items-center gap-2 mb-1">
-                    <AlertCircle size={14} className="text-orange-600" />
-                    <p className="text-xs font-semibold text-orange-900">High Risk</p>
+                    {detail.compositeScore >= 80 ? (
+                      <AlertCircle size={14} className="text-red-600" />
+                    ) : detail.compositeScore >= 50 ? (
+                      <AlertCircle size={14} className="text-orange-600" />
+                    ) : (
+                      <CheckCircle2 size={14} className="text-green-600" />
+                    )}
+                    <p className={`text-xs font-semibold ${
+                      detail.compositeScore >= 80 ? 'text-red-900' : 
+                      detail.compositeScore >= 50 ? 'text-orange-900' : 
+                      'text-green-900'
+                    }`}>
+                      {detail.compositeScore >= 80 ? 'Critical Risk' : detail.compositeScore >= 50 ? 'High Risk' : 'Safe/Normal'}
+                    </p>
                   </div>
-                  <p className="text-xs text-orange-700">Requires immediate review</p>
+                  <p className={`text-xs ${
+                    detail.compositeScore >= 80 ? 'text-red-700' : 
+                    detail.compositeScore >= 50 ? 'text-orange-700' : 
+                    'text-green-700'
+                  }`}>
+                    {detail.compositeScore >= 80 ? 'Immediate action required' : detail.compositeScore >= 50 ? 'Requires scheduled review' : 'No action needed'}
+                  </p>
                 </div>
 
                 <Button className="w-full mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-                  Schedule Review
+                  {detail.compositeScore >= 80 ? 'Hold Settlement' : 'Schedule Review'}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
-          {/* Quick Stats */}
+          {/* Quick Stats (Sekarang sudah dinamis!) */}
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-sm">Quick Stats</CardTitle>
@@ -183,15 +278,17 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground">Transactions (30D)</p>
-                <p className="text-lg font-bold text-foreground">2,847</p>
+                <p className="text-lg font-bold text-foreground">{detail.stats.transactions.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Avg Transaction</p>
-                <p className="text-lg font-bold text-foreground">$124.50</p>
+                <p className="text-lg font-bold text-foreground">{detail.stats.avgTxn}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Dispute Rate</p>
-                <p className="text-lg font-bold text-red-600">8.2%</p>
+                <p className={`text-lg font-bold ${detail.compositeScore >= 50 ? 'text-red-600' : 'text-green-600'}`}>
+                  {detail.stats.disputeRate}
+                </p>
               </div>
             </CardContent>
           </Card>
