@@ -66,38 +66,6 @@
             </div>
           </div>
         </Card>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded flex items-center justify-center bg-red-100">
-                <AlertTriangle className="text-red-600" size={16} />
-              </div>
-              <span className="text-sm font-medium text-foreground">Portfolio Risk</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">High Exposure</p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded flex items-center justify-center bg-orange-100">
-                <TrendingUp className="text-orange-600" size={16} />
-              </div>
-              <span className="text-sm font-medium text-foreground">Avg Chargeback Rate</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">1.2% <span className="text-sm text-orange-600">(+3.2%)</span></p>
-          </Card>
-          <Card className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded flex items-center justify-center bg-green-100">
-                <CheckCircle className="text-green-600" size={16} />
-              </div>
-              <span className="text-sm font-medium text-foreground">Safe Merchants</span>
-            </div>
-            <p className="text-2xl font-bold text-foreground">84%</p>
-          </Card>
-        </div>
-
         {/* Table */}
         <Card className="overflow-hidden">
           <MerchantTable merchants={merchants} />

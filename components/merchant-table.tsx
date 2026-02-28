@@ -123,8 +123,12 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
             <tr 
               key={merchant.id} 
               className="border-b border-border hover:bg-muted/20 transition-colors cursor-pointer"
-              // Tambahkan trigger routing Next.js pada level baris agar seluruh TR bisa di-klik
-              onClick={() => router.push(`/merchant/${merchant.id}`)}
+              onClick={() => {
+                // 1. Simpan ID ke memory browser 
+                localStorage.setItem('lastViewedMerchantId', merchant.id)
+                // 2. Lempar ke halaman Analytics
+                router.push('/analytics')
+              }}
             >
               <td className="px-6 py-4">
                 {/* Mengubah elemen <Link> menjadi <div> biasa untuk mencegah error di browser saat seluruh baris bisa diklik */}

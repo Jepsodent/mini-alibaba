@@ -37,28 +37,28 @@ const getDynamicDetail = (id: string) => {
     compositeScore: riskScore,
     riskIndicators: [
       {
-        label: "Chargeback Rate",
-        status: isCritical ? 'Critical' : isElevated ? 'Elevated' : 'Normal',
-        value: cbRatio,
-        detail: "Last 30 days rolling average"
-      },
-      {
-        label: "Refund Velocity",
+        label: "Refund Spike",
         status: refundStatus,
-        value: refundValue,
+        value: refundValue, // Contoh: +45%
         detail: "Compared to previous 7 days"
       },
       {
-        label: "Auth Rate",
-        status: isCritical ? "Elevated" : "Normal",
-        value: isCritical ? "78.4%" : "94.2%",
-        detail: "Transaction approval rate"
+        label: "Chargeback Rate",
+        status: isCritical ? 'Critical' : isElevated ? 'Elevated' : 'Normal',
+        value: cbRatio, // Contoh: 2.4%
+        detail: "Last 30 days rolling average"
       },
       {
-        label: "Fraud Flags",
+        label: "Txn Volatility", // Saya perbaiki typo menjadi Volatility
+        status: isCritical ? "Elevated" : "Normal",
+        value: isCritical ? "High (42%)" : "Low (8%)",
+        detail: "Daily volume variance"
+      },
+      {
+        label: "Growth Rate",
         status: isCritical ? "Critical" : "Normal",
-        value: isCritical ? "14" : "2",
-        detail: "AI detected anomalies"
+        value: isCritical ? "+315%" : "+14%", // Pertumbuhan drastis tiba-tiba = sinyal bahaya
+        detail: "Month-over-month growth"
       }
     ],
     aiAnalysis: {
@@ -80,7 +80,6 @@ const getDynamicDetail = (id: string) => {
     }
   }
 }
-
 export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
   // Menggunakan data yang sudah dinamis berdasarkan merchantId
   const detail = getDynamicDetail(merchantId)
@@ -270,7 +269,6 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
             </CardContent>
           </Card>
 
-          {/* Quick Stats (Sekarang sudah dinamis!) */}
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-sm">Quick Stats</CardTitle>
