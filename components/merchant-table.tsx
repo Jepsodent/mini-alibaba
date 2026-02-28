@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 
 interface Merchant {
@@ -22,10 +22,70 @@ interface Merchant {
 }
 
 interface MerchantTableProps {
-  merchants: Merchant[]
+  merchants?: Merchant[] // Jadikan opsional agar bisa memakai data dummy jika kosong
 }
 
+// Tambahkan Dummy Data persis dengan interface di atas
+const dummyMerchants: Merchant[] = [
+  {
+    id: 'm-1001',
+    name: 'TechFlow Solutions',
+    mccId: 'MID-882910',
+    mcc: '5814',
+    industry: 'SaaS / Software',
+    riskScore: 85,
+    settlementMcc: '5814 - SaaS',
+    settlementStatus: 'Critical',
+    chargebackRatio: '2.4%',
+    chargebackStatus: 'Critical',
+    statusIndicator: 'High',
+    refundVelocity: '+45%',
+    refundVelocityStatus: 'Critical',
+    initials: 'TF',
+    color: '#ef4444' // red
+  },
+  {
+    id: 'm-1002',
+    name: 'Wanderlust Travel Co.',
+    mccId: 'MID-773821',
+    mcc: '4722',
+    industry: 'Travel Agency',
+    riskScore: 65,
+    settlementMcc: '4722 - Travel',
+    settlementStatus: 'Warning',
+    chargebackRatio: '1.2%',
+    chargebackStatus: 'Hold',
+    statusIndicator: 'Medium',
+    refundVelocity: '+15%',
+    refundVelocityStatus: 'High',
+    initials: 'WT',
+    color: '#f97316' // orange
+  },
+  {
+    id: 'm-1003',
+    name: 'GreenLife Organics',
+    mccId: 'MID-992011',
+    mcc: '5411',
+    industry: 'Grocery',
+    riskScore: 12,
+    settlementMcc: '5411 - Grocery Stores',
+    settlementStatus: 'Safe',
+    chargebackRatio: '0.1%',
+    chargebackStatus: 'Safe',
+    statusIndicator: 'Low',
+    refundVelocity: '+2%',
+    refundVelocityStatus: 'Normal',
+    initials: 'GL',
+    color: '#22c55e' // green
+  }
+]
+
 export default function MerchantTable({ merchants }: MerchantTableProps) {
+  const router = useRouter()
+
+  // Gunakan data dari props jika ada, jika kosong gunakan data dummy
+  const displayData = merchants && merchants.length > 0 ? merchants : dummyMerchants
+
   const getRiskScoreBadgeColor = (score: number) => {
     if (score >= 80) return 'bg-red-100 text-red-700'
     if (score >= 50) return 'bg-orange-100 text-orange-700'
@@ -59,13 +119,16 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
           </tr>
         </thead>
         <tbody>
-          {merchants.map((merchant) => (
+          {displayData.map((merchant) => (
             <tr 
               key={merchant.id} 
               className="border-b border-border hover:bg-muted/20 transition-colors cursor-pointer"
+              // Tambahkan trigger routing Next.js pada level baris agar seluruh TR bisa di-klik
+              onClick={() => router.push(`/merchant/${merchant.id}`)}
             >
               <td className="px-6 py-4">
-                <Link href={`/merchant/${merchant.id}`} className="flex items-center gap-3 hover:underline">
+                {/* Mengubah elemen <Link> menjadi <div> biasa untuk mencegah error di browser saat seluruh baris bisa diklik */}
+                <div className="flex items-center gap-3">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
                     style={{ backgroundColor: merchant.color }}
@@ -73,10 +136,10 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
                     {merchant.initials}
                   </div>
                   <div>
-                    <p className="font-medium text-foreground">{merchant.name}</p>
+                    <p className="font-medium text-foreground hover:underline">{merchant.name}</p>
                     <p className="text-xs text-muted-foreground font-mono">MID: {merchant.mccId}</p>
                   </div>
-                </Link>
+                </div>
               </td>
               <td className="px-6 py-4">
                 <div>

@@ -1,107 +1,103 @@
-'use client'
+"use client"
 
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-const chargebackData = [
-  { industry: 'Travel', count: 45 },
-  { industry: 'Digital Goods', count: 38 },
-  { industry: 'Luxury Retail', count: 32 },
-  { industry: 'Software', count: 28 },
-  { industry: 'Others', count: 48 },
-]
-
-const trendData = [
-  { week: 'W1', disputes: 125, chargebacks: 45, refunds: 82 },
-  { week: 'W2', disputes: 142, chargebacks: 52, refunds: 91 },
-  { week: 'W3', disputes: 156, chargebacks: 58, refunds: 105 },
-  { week: 'W4', disputes: 168, chargebacks: 65, refunds: 118 },
-]
-
-const riskDistribution = [
-  { name: 'Low Risk', value: 35 },
-  { name: 'Medium Risk', value: 45 },
-  { name: 'High Risk', value: 20 },
-]
-
-const COLORS = ['#90EE90', '#FFA07A', '#FF6B6B']
-
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// PERBAIKAN 1: Import StatCard sebagai default import (tanpa kurung kurawal)
+import StatCard from "@/components/stat-card" 
+import AlertsTable  from "@/components/alerts-table"
+import { Activity, AlertTriangle, TrendingUp, ShieldAlert } from "lucide-react"
+import mockData from "@/lib/mock-data.json"
 export default function AnalyticsPage() {
+  const alertsData = mockData.recentAlerts || []
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-1">Analytics</h1>
-        <p className="text-muted-foreground">Comprehensive insights into merchant risk patterns and trends.</p>
+    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="flex items-center justify-between space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Predictive Chargeback Intelligence</h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        {/* Dispute Trends */}
-        <Card>
+      {/* PERBAIKAN 2: Sesuaikan props dengan interface StatCard kamu */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Total Exposure Risk" 
+          value="$1.24M" 
+          change="+14%" 
+          icon={AlertTriangle} 
+          color="text-red-500" 
+        />
+        <StatCard 
+          title="Predicted CB Surge" 
+          value="12 Merchants" 
+          change="+3" 
+          icon={TrendingUp} 
+          color="text-orange-500" 
+        />
+        <StatCard 
+          title="Refund-to-CB Conversion" 
+          value="18.4%" 
+          change="-2.1%" 
+          icon={Activity} 
+          color="text-blue-500" 
+        />
+        <StatCard 
+          title="Settlement Auto-Adjusted" 
+          value="$450K" 
+          change="+12%" 
+          icon={ShieldAlert} 
+          color="text-green-500" 
+        />
+      </div>
+
+      {/* Main Content Row */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7 mt-4">
+        
+        {/* Panel Sinyal Prediksi */}
+        <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Weekly Dispute Trends</CardTitle>
+            <CardTitle>AI-Driven Risk Signals</CardTitle>
+            <CardDescription>
+              Early warnings detected from refund anomalies and transaction patterns.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="week" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="disputes" stroke="#3B82F6" />
-                <Line type="monotone" dataKey="chargebacks" stroke="#FF6B6B" />
-                <Line type="monotone" dataKey="refunds" stroke="#FFA07A" />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="space-y-4">
+               {/* Signal 1 */}
+               <div className="flex items-center justify-between p-4 border rounded-lg bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900">
+                 <div>
+                   <h4 className="font-semibold text-red-700 dark:text-red-400">Critical: First-Party Fraud Surge</h4>
+                   <p className="text-sm text-muted-foreground mt-1">SaaS vertical showing identical &quot;Forgotten Trial&quot; patterns across 3 merchants.</p>
+                 </div>
+                 <div className="text-right">
+                    <span className="block font-bold text-red-600 text-lg">-$125,000</span>
+                    <span className="text-xs text-red-500">Est. Exposure</span>
+                 </div>
+               </div>
+               
+               {/* Signal 2 */}
+               <div className="flex items-center justify-between p-4 border rounded-lg bg-orange-50 dark:bg-orange-900/10 border-orange-200 dark:border-orange-900">
+                 <div>
+                   <h4 className="font-semibold text-orange-700 dark:text-orange-400">Warning: Refund Spike &gt; 300%</h4>
+                   <p className="text-sm text-muted-foreground mt-1">Travel Merchant ID #8922 refund deviation. High CB probability in 14-21 days.</p>
+                 </div>
+                 <div className="text-right">
+                    <span className="block font-bold text-orange-600 text-lg">-$42,500</span>
+                    <span className="text-xs text-orange-500">Est. Exposure</span>
+                 </div>
+               </div>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Risk Distribution */}
-        <Card>
+        {/* Tabel Alerts */}
+        <Card className="col-span-3">
           <CardHeader>
-            <CardTitle>Merchant Risk Distribution</CardTitle>
+            <CardTitle>Actionable Alerts</CardTitle>
+            <CardDescription>Dynamic settlement controls triggered.</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={riskDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {riskDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            <AlertsTable  alerts={alertsData}/>
           </CardContent>
         </Card>
+        
       </div>
-
-      {/* Industry Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Chargebacks by Industry</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chargebackData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="industry" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
-              <Tooltip />
-              <Bar dataKey="count" fill="#FF8C42" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
     </div>
   )
 }
