@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, AlertCircle, CheckCircle2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import mockData from '@/lib/mock-data.json'
 import { Button } from '@/components/ui/button'
@@ -13,13 +14,9 @@ interface MerchantDetailProps {
 
 // Fungsi untuk men-generate data dinamis berdasarkan ID yang diklik
 const getDynamicDetail = (id: string) => {
-  // 1. Cari data merchant dari list tabel (jika ada)
   const baseMerchant = mockData.merchants?.find((m: any) => m.id === id)
-  
-  // 2. Ambil referensi detail dari mockData (kalau ada struktur bawaannya)
   const fallbackDetail = mockData.merchantDetail
 
-  // 3. Buat angka & status dinamis
   const riskScore = baseMerchant?.riskScore || Math.floor(Math.random() * 40) + 40
   const isCritical = riskScore >= 80
   const isElevated = riskScore >= 50 && riskScore < 80
@@ -39,17 +36,17 @@ const getDynamicDetail = (id: string) => {
       {
         label: "Refund Spike",
         status: refundStatus,
-        value: refundValue, // Contoh: +45%
+        value: refundValue,
         detail: "Compared to previous 7 days"
       },
       {
         label: "Chargeback Rate",
         status: isCritical ? 'Critical' : isElevated ? 'Elevated' : 'Normal',
-        value: cbRatio, // Contoh: 2.4%
+        value: cbRatio,
         detail: "Last 30 days rolling average"
       },
       {
-        label: "Txn Volatility", // Saya perbaiki typo menjadi Volatility
+        label: "Txn Volatility",
         status: isCritical ? "Elevated" : "Normal",
         value: isCritical ? "High (42%)" : "Low (8%)",
         detail: "Daily volume variance"
@@ -57,7 +54,7 @@ const getDynamicDetail = (id: string) => {
       {
         label: "Growth Rate",
         status: isCritical ? "Critical" : "Normal",
-        value: isCritical ? "+315%" : "+14%", // Pertumbuhan drastis tiba-tiba = sinyal bahaya
+        value: isCritical ? "+315%" : "+14%",
         detail: "Month-over-month growth"
       }
     ],
@@ -80,9 +77,39 @@ const getDynamicDetail = (id: string) => {
     }
   }
 }
+
 export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
-  // Menggunakan data yang sudah dinamis berdasarkan merchantId
   const detail = getDynamicDetail(merchantId)
+  
+  // State untuk AI
+  const [liveAiAnalysis, setLiveAiAnalysis] = useState<string | null>(null)
+  const [isLoadingAi, setIsLoadingAi] = useState(false)
+
+  // Fungsi memanggil API Route
+  const handleGenerateRealAI = async () => {
+    setIsLoadingAi(true)
+    try {
+      const response = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantName: detail.name,
+          riskScore: detail.compositeScore,
+          cbRate: detail.stats.disputeRate
+        })
+      })
+      const data = await response.json()
+      if (data.success) {
+        setLiveAiAnalysis(data.aiResponse)
+      } else {
+        setLiveAiAnalysis("Gagal mendapatkan analisis dari server.")
+      }
+    } catch (error) {
+      setLiveAiAnalysis("Terjadi kesalahan jaringan.")
+    } finally {
+      setIsLoadingAi(false)
+    }
+  }
 
   const getIndicatorColor = (status: string) => {
     if (status === 'Critical') return 'bg-red-100 text-red-700'
@@ -93,7 +120,7 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
 
   return (
     <div className="p-8 space-y-6">
-      {/* Header with Back Button */}
+      {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div className="flex items-center gap-4">
           <Link href="/exposure">
@@ -122,8 +149,9 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
       </div>
 
       <div className="grid grid-cols-3 gap-6">
-        {/* Left Column - Risk Indicators */}
+        {/* Left Column */}
         <div className="col-span-2 space-y-6">
+          
           {/* Risk Indicator Breakdown */}
           <Card>
             <CardHeader>
@@ -149,7 +177,7 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
             </CardContent>
           </Card>
 
-          {/* AI Analysis */}
+          {/* AI Analysis Component */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div className="flex items-center gap-2">
@@ -158,40 +186,60 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
                 </div>
                 <CardTitle>{detail.aiAnalysis.title}</CardTitle>
               </div>
+              <Button 
+                onClick={handleGenerateRealAI} 
+                disabled={isLoadingAi}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Sparkles size={14} className="mr-2" />
+                {isLoadingAi ? "Menganalisis..." : "Live Alibaba AI"}
+              </Button>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                <p className="text-sm text-orange-900 font-medium mb-2">Alert</p>
-                <p className="text-sm text-orange-800">{detail.aiAnalysis.alert}</p>
-              </div>
-              
-              <div>
-                <p className="text-sm font-medium text-foreground mb-2">Pattern Analysis</p>
-                <p className="text-sm text-muted-foreground">{detail.aiAnalysis.pattern}</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">MCC Codes Identified</p>
-                  <p className="text-sm font-medium text-foreground">{detail.aiAnalysis.mccCodes[0]}</p>
+              {liveAiAnalysis ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 animate-in fade-in zoom-in duration-300">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles size={16} className="text-blue-600" />
+                    <p className="text-sm text-blue-900 font-bold">Real-time Insight dari Alibaba Qwen</p>
+                  </div>
+                  <p className="text-sm text-blue-800 leading-relaxed">{liveAiAnalysis}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Confidence Score</p>
-                  <p className="text-sm font-medium text-foreground">{detail.aiAnalysis.confidence}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Recommended Action</p>
-                  <button className="text-sm text-primary font-medium hover:underline">
-                    {detail.aiAnalysis.action}
-                  </button>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <p className="text-sm text-orange-900 font-medium mb-2">Alert</p>
+                    <p className="text-sm text-orange-800">{detail.aiAnalysis.alert}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-2">Pattern Analysis</p>
+                    <p className="text-sm text-muted-foreground">{detail.aiAnalysis.pattern}</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">MCC Codes Identified</p>
+                      <p className="text-sm font-medium text-foreground">{detail.aiAnalysis.mccCodes[0]}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Confidence Score</p>
+                      <p className="text-sm font-medium text-foreground">{detail.aiAnalysis.confidence}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Recommended Action</p>
+                      <button className="text-sm text-primary font-medium hover:underline">
+                        {detail.aiAnalysis.action}
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Composite Score */}
+        {/* Right Column */}
         <div>
+          {/* Composite Score */}
           <Card className="text-center">
             <CardHeader>
               <CardTitle className="text-base">Composite Score</CardTitle>
@@ -199,19 +247,9 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
             <CardContent className="flex flex-col items-center justify-center py-8">
               <div className="relative w-32 h-32 mb-4 flex items-center justify-center">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="#e5e7eb" strokeWidth="8" />
                   <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="8"
-                  />
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
+                    cx="50" cy="50" r="45" fill="none"
                     stroke={detail.compositeScore >= 80 ? '#ef4444' : detail.compositeScore >= 50 ? '#FF8C42' : '#22c55e'}
                     strokeWidth="8"
                     strokeDasharray={`${(detail.compositeScore / 100) * 283} 283`}
@@ -231,7 +269,6 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
               
               <div className="space-y-2 w-full">
                 <p className="text-sm text-muted-foreground mb-3">Risk Assessment</p>
-                
                 <div className={`border rounded-lg p-3 ${
                   detail.compositeScore >= 80 ? 'bg-red-50 border-red-200' : 
                   detail.compositeScore >= 50 ? 'bg-orange-50 border-orange-200' : 
@@ -269,6 +306,7 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
             </CardContent>
           </Card>
 
+          {/* Quick Stats */}
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-sm">Quick Stats</CardTitle>
