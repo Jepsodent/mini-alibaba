@@ -1,0 +1,218 @@
+{
+  "merchants": [
+    {
+      "id": "MERID-001",
+      "name": "OmniPay Global",
+      "mccId": "8362704",
+      "mcc": "6011",
+      "industry": "Financial Svcs",
+      "riskScore": 92,
+      "settlementMcc": "8362704",
+      "settlementStatus": "Critical",
+      "chargebackRatio": "25%",
+      "chargebackStatus": "Hold",
+      "statusIndicator": "Critical",
+      "refundVelocity": "3.1%",
+      "refundVelocityStatus": "Critical",
+      "initials": "OP",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "MERID-002",
+      "name": "TechNova Solutions",
+      "mccId": "4427699",
+      "mcc": "5734",
+      "industry": "Software",
+      "riskScore": 55,
+      "settlementMcc": "4427699",
+      "settlementStatus": "Warning",
+      "chargebackRatio": "16%",
+      "chargebackStatus": "Hold",
+      "statusIndicator": "Warning",
+      "refundVelocity": "2.4%",
+      "refundVelocityStatus": "High",
+      "initials": "TN",
+      "color": "#FFA07A"
+    },
+    {
+      "id": "MERID-003",
+      "name": "CyberVault Inc.",
+      "mccId": "1829384",
+      "mcc": "5815",
+      "industry": "Digital Goods",
+      "riskScore": 65,
+      "settlementMcc": "1829384",
+      "settlementStatus": "Safe",
+      "chargebackRatio": "10%",
+      "chargebackStatus": "Hold",
+      "statusIndicator": "Warning",
+      "refundVelocity": "1.1%",
+      "refundVelocityStatus": "Medium",
+      "initials": "CV",
+      "color": "#FFB347"
+    },
+    {
+      "id": "MERID-004",
+      "name": "BlueSky Travel",
+      "mccId": "5687120",
+      "mcc": "4722",
+      "industry": "Travel Agency",
+      "riskScore": 45,
+      "settlementMcc": "5687120",
+      "settlementStatus": "Safe",
+      "chargebackRatio": "5%",
+      "chargebackStatus": "None",
+      "statusIndicator": "Safe",
+      "refundVelocity": "0.9%",
+      "refundVelocityStatus": "Medium",
+      "initials": "BS",
+      "color": "#87CEEB"
+    },
+    {
+      "id": "MERID-005",
+      "name": "Atlas Logistics",
+      "mccId": "2200483",
+      "mcc": "4789",
+      "industry": "Transport/Postal Svcs",
+      "riskScore": 25,
+      "settlementMcc": "2200483",
+      "settlementStatus": "Safe",
+      "chargebackRatio": "5%",
+      "chargebackStatus": "Hold",
+      "statusIndicator": "Safe",
+      "refundVelocity": "0.5%",
+      "refundVelocityStatus": "Low",
+      "initials": "AL",
+      "color": "#90EE90"
+    },
+    {
+      "id": "MERID-006",
+      "name": "GreenLeaf Retail",
+      "mccId": "8983110",
+      "mcc": "5311",
+      "industry": "General Retail",
+      "riskScore": 12,
+      "settlementMcc": "8983110",
+      "settlementStatus": "Safe",
+      "chargebackRatio": "3%",
+      "chargebackStatus": "None",
+      "statusIndicator": "Safe",
+      "refundVelocity": "0.2%",
+      "refundVelocityStatus": "Low",
+      "initials": "GR",
+      "color": "#98D98E"
+    }
+  ],
+  "portfolioStats": {
+    "merchantsMonitored": 1245,
+    "merchantsMonitoredChange": "+12%",
+    "highRisk": 91,
+    "highRiskChange": "+5%",
+    "warning": 234,
+    "warningChange": "-3%",
+    "healthy": 920,
+    "healthyChange": "-8%"
+  },
+  "chargebackTrend": [
+    { "month": "Jan", "historical": 2.1, "forecast": 2.1 },
+    { "month": "Feb", "historical": 2.3, "forecast": 2.3 },
+    { "month": "Mar", "historical": 2.5, "forecast": 2.5 },
+    { "month": "Apr", "historical": 2.7, "forecast": 2.7 },
+    { "month": "May", "historical": 3.1, "forecast": 3.1 },
+    { "month": "Jun", "historical": 3.4, "forecast": 3.4 },
+    { "month": "Jul", "historical": 3.8, "forecast": 4.2 }
+  ],
+  "atRiskIndustries": [
+    {
+      "id": "INDUSTRY-001",
+      "name": "Travel & Aviation",
+      "mcc": "4511",
+      "riskLevel": "High Risk",
+      "color": "#FF6B6B"
+    },
+    {
+      "id": "INDUSTRY-002",
+      "name": "Luxury Retail",
+      "mcc": "5944",
+      "riskLevel": "Med Risk",
+      "color": "#FFA07A"
+    },
+    {
+      "id": "INDUSTRY-003",
+      "name": "Digital Goods",
+      "mcc": "5818",
+      "riskLevel": "Med Risk",
+      "color": "#FFA07A"
+    },
+    {
+      "id": "INDUSTRY-004",
+      "name": "F&B Services",
+      "mcc": "5812",
+      "riskLevel": "Green Risk",
+      "color": "#90EE90"
+    }
+  ],
+  "recentAlerts": [
+    {
+      "id": "ALERT-001",
+      "merchantId": "MERID-0821",
+      "type": "Rapid Chargeback Spike",
+      "detectionTime": "Today, 10:42 AM",
+      "severity": "Critical",
+      "action": "Review"
+    },
+    {
+      "id": "ALERT-002",
+      "merchantId": "MERID-1204",
+      "type": "Unusual Refund Volume",
+      "detectionTime": "Yesterday, 4:15 PM",
+      "severity": "High",
+      "action": "Review"
+    }
+  ],
+  "merchantDetail": {
+    "id": "MERID-1001",
+    "name": "GlobalTech Solutions",
+    "mcc": "4521",
+    "dateAdded": "Oct 12, 2021",
+    "compositeScore": 78,
+    "interventionNeeded": true,
+    "interventionReason": "Intervention Needed",
+    "riskIndicators": [
+      {
+        "label": "Refund Spike",
+        "value": "4.2%",
+        "status": "Critical",
+        "industryAvg": "1.2%",
+        "detail": "Industry avg: 1.2%"
+      },
+      {
+        "label": "Chargeback Rate",
+        "value": "1.1%",
+        "status": "Elevated",
+        "industryAvg": "1.0%",
+        "detail": "VisaC Threshold: 1.0%"
+      },
+      {
+        "label": "Tan Volatility",
+        "value": "High",
+        "status": "High",
+        "detail": "Standard dev > 4x norm"
+      },
+      {
+        "label": "Growth Rate",
+        "value": "+22%",
+        "status": "Normal",
+        "detail": "Projected organic growth"
+      }
+    ],
+    "aiAnalysis": {
+      "title": "AI Analysis",
+      "alert": "Merchant flagged due to a 35% increase in refund requests over 48 hours, coinciding with high transaction volatility.",
+      "pattern": "The pattern suggests a potential technical issue or service delivery failure in the Northwest region.",
+      "mccCodes": ["MGR-8821"],
+      "confidence": "84%",
+      "action": "Full Audit Log"
+    }
+  }
+}
