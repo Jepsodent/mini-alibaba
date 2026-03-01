@@ -37,10 +37,9 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
 
   // Gunakan data dari props jika ada, jika kosong gunakan data dummy
   const displayData = merchants && merchants.length > 0 ? merchants : [];
-  console.log(displayData);
   const getRatioBadgeColor = (data: number) => {
-    if (data >= 80) return "bg-red-50 text-red-700";
-    if (data >= 30) return "bg-orange-50 text-orange-700";
+    if (data >= 1) return "bg-red-50 text-red-700";
+    if (data >= 0.5) return "bg-orange-50 text-orange-700";
     return "bg-green-50 text-green-700";
   };
 
@@ -77,7 +76,6 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
           {displayData.map((merchant) => {
             const riskValue = merchant.risk_prob * 100;
             const risk = getRiskStatus(riskValue);
-            console.log(merchant);
             return (
               <tr
                 key={merchant.merchant_baselines.merchant_id}
@@ -93,7 +91,6 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
                 }}
               >
                 <td className="px-6 py-4">
-                  {/* Mengubah elemen <Link> menjadi <div> biasa untuk mencegah error di browser saat seluruh baris bisa diklik */}
                   <div className="flex items-center gap-3">
                     <div
                       className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -150,27 +147,27 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-foreground font-medium">
-                    {merchant.refund_vel_6h} %
+                    {merchant.refund_vel_6h.toFixed(0)} %
                   </div>
                   <p
                     className={`text-xs font-semibold ${
-                      merchant.refund_vel_6h >= 50
+                      merchant.refund_vel_6h >= 30
                         ? "text-red-600"
-                        : merchant.refund_vel_6h > 30
+                        : merchant.refund_vel_6h > 10
                           ? "text-orange-600"
                           : "text-green-600"
                     }`}
                   >
-                    {merchant.refund_vel_6h >= 50
+                    {merchant.refund_vel_6h >= 30
                       ? "Critical"
-                      : merchant.refund_vel_6h > 30
+                      : merchant.refund_vel_6h > 10
                         ? "Warning"
                         : "Normal"}
                   </p>
                 </td>
                 <td className="px-6 py-4">
                   <div className="text-foreground font-medium">
-                    {merchant.current_action}
+                    {merchant.current_action} %
                   </div>
                 </td>
               </tr>
