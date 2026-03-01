@@ -7,9 +7,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 from pathlib import Path
 
-# =========================
-# 1. SETUP PATH & ENV (SMART & ROBUST)
-# =========================
+print("Test")
 base_path = Path(__file__).resolve().parent
 env_path = base_path / ".env.local"
 

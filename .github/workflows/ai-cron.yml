@@ -2,8 +2,8 @@ name: AI Fraud Analyzer Worker
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Jalan tiap 6 jam
-  workflow_dispatch:      # Bisa diklik manual di GitHub
+    - cron: "0 */6 * * *" # Jalan tiap 6 jam
+  workflow_dispatch: # Bisa diklik manual di GitHub
 
 jobs:
   run-ai:
@@ -15,7 +15,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install Dependencies
         run: |
@@ -28,4 +28,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         run: |
           cd ai-worker
-          python worker.py
+          python workers.py
