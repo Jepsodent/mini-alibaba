@@ -57,7 +57,7 @@ if df.empty:
     print("No transactions found.")
     exit()
 
-df['created_at'] = pd.to_datetime(df['created_at'])
+df['created_at'] = pd.to_datetime(df['created_at'], utc=True)
 
 # =========================
 # PROCESS PER MERCHANT
@@ -98,9 +98,8 @@ for merchant_id in merchant_ids:
 
     data_6h = m_data[m_data['created_at'] >= cutoff_6h]
     refund_count_6h = len(data_6h[data_6h['status'] == 'refund'])
+
     
-    print(f"📊 Merchant: {merchant_id} | Total Trx: {total_tx}")
-    print(f"🕒 Trx 6 jam terakhir: {len(data_6h)}") 
     refund_vel_6h = (
         refund_count_6h / avg_refund_6h
         if avg_refund_6h > 0 else 0.0
