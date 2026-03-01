@@ -72,8 +72,7 @@ for merchant_id in merchant_ids:
     if total_tx == 0:
         continue
         # ... (di dalam loop merchant)
-    print(f"📊 Merchant: {merchant_id} | Total Trx: {total_tx}")
-    print(f"🕒 Trx 6 jam terakhir: {len(data_6h)}") 
+    
     # -------------------------
     # BASELINES
     # -------------------------
@@ -99,7 +98,9 @@ for merchant_id in merchant_ids:
 
     data_6h = m_data[m_data['created_at'] >= cutoff_6h]
     refund_count_6h = len(data_6h[data_6h['status'] == 'refund'])
-
+    
+    print(f"📊 Merchant: {merchant_id} | Total Trx: {total_tx}")
+    print(f"🕒 Trx 6 jam terakhir: {len(data_6h)}") 
     refund_vel_6h = (
         refund_count_6h / avg_refund_6h
         if avg_refund_6h > 0 else 0.0
