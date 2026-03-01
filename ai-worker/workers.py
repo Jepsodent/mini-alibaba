@@ -52,8 +52,19 @@ if df.empty:
     print("No transactions found.")
     exit()
 
+
+if df.empty:
+    print("No transactions found.")
+    exit()
+
+# +++ TAMBAHKAN 2 BARIS INI UNTUK DEBUGGING +++
+print(f"📈 TOTAL SELURUH DATA MENTAH DI DATABASE (Tanpa Filter): {len(df)} baris")
+print(f"📅 Transaksi paling baru tercatat pada: {df['created_at'].max()}")
+# +++++++++++++++++++++++++++++++++++++++++++++
+
 # PASTIKAN SEMUA WAKTU MENJADI UTC
 df['created_at'] = pd.to_datetime(df['created_at'], utc=True)
+
 
 # ==========================================
 # DEMO MODE FILTER
