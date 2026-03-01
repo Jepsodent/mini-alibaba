@@ -59,9 +59,26 @@ if df.empty:
 
 df['created_at'] = pd.to_datetime(df['created_at'], utc=True)
 
+# =============================================================
+# MASUKKAN BLOK DEMO MODE DI SINI
+# =============================================================
+# Ambil data sedikit lebih lama (misal 24 jam) agar data yang baru di-inject PASTI masuk
+cutoff_demo = NOW - timedelta(hours=24) 
+
+# Tambahkan print untuk debug saat Demo
+print(f"🔍 Mencari data setelah: {cutoff_demo}")
+data_live_global = df[df['created_at'] >= cutoff_demo] # Kita beri nama data_live_global
+print(f"📊 Ditemukan {len(data_live_global)} transaksi dalam jendela demo.")
+
+if data_live_global.empty:
+    print("⚠️ Peringatan: Tidak ada data dalam 24 jam terakhir. Menggunakan semua data yang ada agar demo tetap jalan!")
+    data_live_global = df 
+# =============================================================
+
 # =========================
 # PROCESS PER MERCHANT
 # =========================
+merchant_ids = df['merchant_id'].unique()
 merchant_ids = df['merchant_id'].unique()
 
 for merchant_id in merchant_ids:
@@ -96,7 +113,7 @@ for merchant_id in merchant_ids:
     cb_count = len(m_data[m_data['status'] == 'chargeback'])
     cbr_30d = cb_count / total_tx
 
-    data_6h = m_data[m_data['created_at'] >= cutoff_6h]
+    data_6h = m_data[m_data['created_at'] >= cutoff_6h] 
     refund_count_6h = len(data_6h[data_6h['status'] == 'refund'])
 
     
