@@ -37,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en"suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ReactQueryProvider>
           <div className="flex h-screen bg-background">

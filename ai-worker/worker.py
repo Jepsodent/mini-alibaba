@@ -1,85 +1,184 @@
 import os
-import pandas as pd
 import joblib
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta, timezone # Tambahkan timezone
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from pathlib import Path
 
-# 1. Load Environment Variables (untuk lokal)
-load_dotenv()
+# =========================
+# 1. SETUP PATH & ENV (Mencari file dari posisi script)
+# =========================
+base_path = Path(__file__).parent # Ini menunjuk ke folder ai-worker tempat worker.py berada
+env_path = base_path.parent / ".env.local" # Ini mencari .env.local di folder luar
+load_dotenv(dotenv_path=env_path)
 
-def main():
-    print("🚀 Memulai AI Fraud Analyzer Worker dengan Model Asli...")
+SUPABASE_URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
 
-    # 2. Koneksi ke Supabase
-    url: str = os.environ.get("SUPABASE_URL")
-    key: str = os.environ.get("SUPABASE_SERVICE_KEY")
-    
-    if not url or not key:
-        print("❌ Error: SUPABASE_URL atau SUPABASE_SERVICE_KEY tidak ditemukan!")
-        return
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print(f"❌ Error: Konfigurasi gagal dimuat dari {env_path}")
+    exit()
 
-    supabase: Client = create_client(url, key)
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    try:
-        # 3. Load Model AI Asli (aegis_ai_engine.pkl)
-        print("🧠 Memuat Model AI XGBoost...")
-        model_path = os.path.join(os.path.dirname(__file__), 'aegis_ai_engine.pkl')
-        model = joblib.load(model_path)
+# Perbaikan Peringatan Waktu (DeprecationWarning)
+NOW = datetime.now(timezone.utc)
+cutoff_6h = NOW - timedelta(hours=6)
+cutoff_24h = NOW - timedelta(hours=24)
 
-        # 4. Tarik data merchant dari Supabase
-        print("📥 Mengambil data dari Supabase...")
-        response = supabase.table("merchant_baselines").select("*").execute()
-        merchants = response.data
+# =========================
+# 2. LOAD MODEL (Path yang Benar)
+# =========================
+# Sekarang Python akan mencari model.pkl tepat di folder yang sama dengan script ini
+model_path = base_path / "model.pkl" 
+print(f"🧠 Memuat Model AI dari: {model_path}")
+model = joblib.load(model_path)
 
-        if not merchants:
-            print("ℹ️ Tidak ada data merchant untuk dianalisis.")
-            return
+# =========================
+# FETCH RAW TRANSACTIONS
+# =========================
+# ... (lanjutkan dengan kode bagian bawahmu dari raw_tx = supabase.table(...) )
 
-        # Konversi ke DataFrame untuk diproses AI
-        df = pd.DataFrame(merchants)
+# =========================
+# FETCH RAW TRANSACTIONS
+# =========================
+# =========================
+# FETCH RAW TRANSACTIONS (DENGAN ANTI-ERROR JARINGAN)
+# =========================
+try:
+    print("📥 Mengambil data transaksi dari database...")
+    raw_tx = supabase.table("raw_transactions").select("*").execute()
+    df = pd.DataFrame(raw_tx.data)
 
-        print(f"📊 Menganalisis {len(df)} merchant...")
+    print("📥 Mengambil data baselines...")
+    baselines_data = supabase.table("merchant_baselines").select("*").execute()
+    baselines_df = pd.DataFrame(baselines_data.data)
 
-        # 5. Proses Prediksi dengan Model
-        # Catatan: Pastikan kolom di df sesuai dengan yang diharapkan model (misal: volume, chargeback_rate, dll)
-        # Di sini kita ambil fitur yang diperlukan (contoh saja, sesuaikan dengan fitur modelmu)
-        features = df[['avg_daily_vol', 'avg_ticket_size', 'chargeback_rate']] 
-        
-        # Prediksi Probabilitas Fraud
-        # model.predict_proba biasanya mengembalikan [aman, fraud]
-        predictions_proba = model.predict_proba(features)[:, 1] 
+except Exception as e:
+    print(f"❌ Error Jaringan/Koneksi Supabase: {e}")
+    print("💡 Tips: Coba jalankan ulang script. Ini hanya gangguan koneksi internet sementara.")
+    exit()
 
-        results_to_save = []
+if df.empty:
+    print("No transactions found.")
+    exit()
 
-        for i, row in df.iterrows():
-            risk_score = float(predictions_proba[i] * 100) # Ubah ke skala 0-100
-            
-            # Tentukan status berdasarkan skor
-            status = "Low Risk"
-            action = "Monitor"
-            if risk_score > 80:
-                status = "High Risk"
-                action = "Hold Payout"
-            elif risk_score > 50:
-                status = "Medium Risk"
-                action = "Review Manually"
+df['created_at'] = pd.to_datetime(df['created_at'])
 
-            results_to_save.append({
-                "merchant_id": row['merchant_id'],
-                "risk_score": risk_score,
-                "risk_status": status,
-                "recommended_action": action,
-                "last_analysis": "now()" # Supabase akan mengisi waktu otomatis
-            })
+# =========================
+# PROCESS PER MERCHANT
+# =========================
+merchant_ids = df['merchant_id'].unique()
 
-        # 6. Simpan/Update Hasil ke Tabel AI Features
-        print("📤 Menyimpan hasil prediksi ke Supabase...")
-        supabase.table("aegis_ai_features").upsert(results_to_save).execute()
+for merchant_id in merchant_ids:
 
-        print("✅ Semua proses AI selesai dengan sukses!")
+    m_data = df[df['merchant_id'] == merchant_id]
+    total_tx = len(m_data)
 
-    except Exception as e:
-        print(f"❌ Terjadi kesalahan: {str(e)}")
+    if total_tx == 0:
+        continue
 
-if __name__ == "__main__":
-    main()
+    # -------------------------
+    # BASELINES
+    # -------------------------
+    total_vol_30d = m_data['amount'].sum()
+    avg_daily_vol = total_vol_30d / 30
+
+    total_refunds = len(m_data[m_data['status'] == 'refund'])
+    avg_refund_6h = total_refunds / (30 * 4)
+
+    # Update baseline table
+    supabase.table("merchant_baselines").upsert({
+        "merchant_id": merchant_id,
+        "avg_daily_vol": avg_daily_vol,
+        "avg_refund_6h": avg_refund_6h,
+        "last_updated": NOW.isoformat()
+    }).execute()
+
+    # -------------------------
+    # LIVE FEATURES
+    # -------------------------
+    cb_count = len(m_data[m_data['status'] == 'chargeback'])
+    cbr_30d = cb_count / total_tx
+
+    data_6h = m_data[m_data['created_at'] >= cutoff_6h]
+    refund_count_6h = len(data_6h[data_6h['status'] == 'refund'])
+
+    refund_vel_6h = (
+        refund_count_6h / avg_refund_6h
+        if avg_refund_6h > 0 else 0.0
+    )
+
+    vol_24h = m_data[m_data['created_at'] >= cutoff_24h]['amount'].sum()
+    vol_spike_24h = (
+        vol_24h / avg_daily_vol
+        if avg_daily_vol > 0 else 0.0
+    )
+
+    crc_index = (
+        cb_count / total_refunds
+        if total_refunds > 0 else 0.0
+    )
+
+    baseline_row = baselines_df[baselines_df["merchant_id"] == merchant_id]
+
+    if not baseline_row.empty:
+        mcc_risk_score = float(baseline_row["mcc_risk_weight"].values[0])
+    else:
+        mcc_risk_score = 0.003  # fallback default
+
+    # -------------------------
+    # PREDICT
+    # -------------------------
+    X_live = pd.DataFrame([{
+        "CBR_30d": cbr_30d,
+        "Refund_Velocity_6h": refund_vel_6h,
+        "Volume_Spike_Ratio": vol_spike_24h,
+        "MCC_Risk_Score": mcc_risk_score,  # bisa fetch dari baseline
+        "CRC_Index": crc_index
+    }])
+
+    risk_prob = float(model.predict_proba(X_live)[0][1])
+    risk_score = round(risk_prob * 100, 2)
+
+    # -------------------------
+    # SETTLEMENT HOLD LOGIC
+    # -------------------------
+    if risk_score <= 30:
+        tier = "Low"
+        hold_percent = 0
+
+    elif risk_score <= 60:
+        tier = "Medium"
+        hold_percent = 10 + ((risk_score - 31) / 29) * 10
+
+    elif risk_score <= 80:
+        tier = "High"
+        hold_percent = 21 + ((risk_score - 61) / 19) * 19
+
+    else:
+        tier = "Critical"
+        hold_percent = 41 + ((risk_score - 81) / 19) * 29
+
+    hold_percent = round(hold_percent, 2)
+
+    # -------------------------
+    # UPDATE AEGIS FEATURE
+    # -------------------------
+# -------------------------
+    # UPDATE AEGIS FEATURE
+    # -------------------------
+    supabase.table("aegis_ai_features").upsert({
+        "merchant_id": merchant_id,
+        "cbr_30d": cbr_30d,
+        "refund_vel_6h": refund_vel_6h,
+        "vol_spike_24h": vol_spike_24h,
+        "crc_index": crc_index,
+        "risk_prob": risk_prob,
+        "current_action": hold_percent,
+        "updated_at": NOW.isoformat()
+    }, on_conflict="merchant_id").execute() 
+
+print("Risk engine job completed.")
