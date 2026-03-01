@@ -1,0 +1,5 @@
+pandas
+xgboost
+supabase
+scikit-learn
+joblib
