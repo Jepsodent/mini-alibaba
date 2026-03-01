@@ -38,17 +38,7 @@ model_path = base_path / "model.pkl"
 print(f"🧠 Memuat Model AI dari: {model_path}")
 model = joblib.load(model_path)
 
-# =========================
-# FETCH RAW TRANSACTIONS
-# =========================
-# ... (lanjutkan dengan kode bagian bawahmu dari raw_tx = supabase.table(...) )
 
-# =========================
-# FETCH RAW TRANSACTIONS
-# =========================
-# =========================
-# FETCH RAW TRANSACTIONS (DENGAN ANTI-ERROR JARINGAN)
-# =========================
 try:
     print("📥 Mengambil data transaksi dari database...")
     raw_tx = supabase.table("raw_transactions").select("*").execute()
@@ -81,7 +71,9 @@ for merchant_id in merchant_ids:
 
     if total_tx == 0:
         continue
-
+        # ... (di dalam loop merchant)
+    print(f"📊 Merchant: {merchant_id} | Total Trx: {total_tx}")
+    print(f"🕒 Trx 6 jam terakhir: {len(data_6h)}") 
     # -------------------------
     # BASELINES
     # -------------------------
@@ -165,6 +157,7 @@ for merchant_id in merchant_ids:
         hold_percent = 41 + ((risk_score - 81) / 19) * 29
 
     hold_percent = round(hold_percent, 2)
+    print(f"🧠 Score: {risk_score} | Hold: {hold_percent}%")
 
     # -------------------------
     # UPDATE AEGIS FEATURE
