@@ -1,107 +1,57 @@
 'use client'
 
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-const chargebackData = [
-  { industry: 'Travel', count: 45 },
-  { industry: 'Digital Goods', count: 38 },
-  { industry: 'Luxury Retail', count: 32 },
-  { industry: 'Software', count: 28 },
-  { industry: 'Others', count: 48 },
-]
-
-const trendData = [
-  { week: 'W1', disputes: 125, chargebacks: 45, refunds: 82 },
-  { week: 'W2', disputes: 142, chargebacks: 52, refunds: 91 },
-  { week: 'W3', disputes: 156, chargebacks: 58, refunds: 105 },
-  { week: 'W4', disputes: 168, chargebacks: 65, refunds: 118 },
-]
-
-const riskDistribution = [
-  { name: 'Low Risk', value: 35 },
-  { name: 'Medium Risk', value: 45 },
-  { name: 'High Risk', value: 20 },
-]
-
-const COLORS = ['#90EE90', '#FFA07A', '#FF6B6B']
+import { useEffect, useState } from 'react'
+import MerchantDetail from '@/components/merchant-detail'
+import { Store, ArrowRight, BarChart3 } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default function AnalyticsPage() {
+  const [lastViewedId, setLastViewedId] = useState<string | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
+
+  useEffect(() => {
+    // Saat halaman dimuat, cek apakah ada histori merchant yang terakhir dibuka
+    const savedId = localStorage.getItem('lastViewedMerchantId')
+    if (savedId) {
+      setLastViewedId(savedId)
+    }
+    setIsLoaded(true)
+  }, [])
+
+  // Tampilan loading singkat saat mengecek localStorage
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground animate-pulse">Memuat data analitik...</p>
+      </div>
+    )
+  }
+
+  // Tampilan JIKA BELUM ADA merchant yang dipilih sama sekali
+  if (!lastViewedId) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-8 text-center space-y-4">
+        <div className="w-20 h-20 bg-muted/50 rounded-full flex items-center justify-center mb-2 border border-border">
+          <BarChart3 className="w-10 h-10 text-muted-foreground" />
+        </div>
+        <h2 className="text-3xl font-bold text-foreground">Belum ada Merchant yang Dianalisis</h2>
+        <p className="text-muted-foreground max-w-md text-sm">
+          Sistem belum mendeteksi merchant yang sedang Anda pantau. Silakan buka halaman Merchant Exposure dan pilih salah satu merchant untuk melihat analitik dan sinyal risiko detailnya.
+        </p>
+        <Link href="/exposure">
+          <Button className="mt-4 bg-primary text-primary-foreground">
+            Buka Halaman Exposure <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  // Tampilan JIKA SUDAH ADA merchant yang dipilih
   return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-1">Analytics</h1>
-        <p className="text-muted-foreground">Comprehensive insights into merchant risk patterns and trends.</p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-6">
-        {/* Dispute Trends */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Weekly Dispute Trends</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                <XAxis dataKey="week" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="disputes" stroke="#3B82F6" />
-                <Line type="monotone" dataKey="chargebacks" stroke="#FF6B6B" />
-                <Line type="monotone" dataKey="refunds" stroke="#FFA07A" />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Risk Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Merchant Risk Distribution</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={riskDistribution}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {riskDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Industry Breakdown */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Chargebacks by Industry</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chargebackData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="industry" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
-              <Tooltip />
-              <Bar dataKey="count" fill="#FF8C42" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+    <div className="flex-1 w-full bg-background animate-in fade-in duration-500">
+      <MerchantDetail merchantId={lastViewedId} />
     </div>
   )
 }

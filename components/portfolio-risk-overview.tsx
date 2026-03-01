@@ -39,7 +39,7 @@ export default function PortfolioRiskOverview() {
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-6">
         <StatCard
-          title="Merchants Monitored"
+          title="Merchants "
           value={portfolioStats.merchantsMonitored}
           change={portfolioStats.merchantsMonitoredChange}
           icon={BarChart3}
