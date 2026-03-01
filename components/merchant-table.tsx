@@ -37,7 +37,7 @@ export default function MerchantTable({ merchants }: MerchantTableProps) {
 
   // Gunakan data dari props jika ada, jika kosong gunakan data dummy
   const displayData = merchants && merchants.length > 0 ? merchants : [];
-
+  console.log(displayData);
   const getRatioBadgeColor = (data: number) => {
     if (data >= 80) return "bg-red-50 text-red-700";
     if (data >= 30) return "bg-orange-50 text-orange-700";

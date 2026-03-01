@@ -14,10 +14,95 @@ import ChargebackChart from "./chargeback-chart";
 import AlertsTable from "./alerts-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from "@tanstack/react-query";
+import { createClient } from "@/lib/supabase/client";
 
 export default function PortfolioRiskOverview() {
   const { portfolioStats, chargebackTrend, atRiskIndustries, recentAlerts } =
     mockData;
+  const supabase = createClient();
+  const {
+    data: merchantData,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["merchants_stats"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("aegis_ai_features")
+        .select("risk_prob, merchant_baselines(industry)");
+
+      const stats = data?.reduce(
+        (acc, m) => {
+          acc.merchantsMonitored++;
+          const prob = m.risk_prob * 100;
+
+          if (prob <= 30)
+            acc.health++; // normal / sehat
+          else if (prob <= 60)
+            acc.warning++; // warning
+          else acc.high++; // high + critical digabung
+
+          return acc;
+        },
+        { merchantsMonitored: 0, high: 0, warning: 0, health: 0 },
+      );
+      const industries = Array.from(
+        new Set(
+          data
+            ?.map(
+              (m) =>
+                (m.merchant_baselines as unknown as { industry: string })
+                  .industry,
+            )
+            .filter((i): i is string => typeof i === "string"), // pastikan tipe string
+        ),
+      );
+      // per-industry stats
+      const industryStats = data?.reduce(
+        (acc, m) => {
+          const industry = (
+            m.merchant_baselines as unknown as { industry: string }
+          ).industry;
+          const prob = m.risk_prob;
+
+          if (!acc[industry]) {
+            acc[industry] = { totalRisk: 0, count: 0 };
+          }
+
+          acc[industry].totalRisk += prob;
+          acc[industry].count += 1;
+
+          return acc;
+        },
+        {} as Record<string, { totalRisk: number; count: number }>,
+      );
+      const industryAverages = Object.entries(industryStats ?? {}).map(
+        ([industry, { totalRisk, count }]) => ({
+          industry,
+          avgRisk: totalRisk / count,
+        }),
+      );
+      console.log(industryAverages);
+
+      console.log(data, stats);
+      return { stats, industryAverages };
+    },
+  });
+
+  const sortedIndustries = merchantData?.industryAverages
+    .map((ind) => ({
+      ...ind,
+      // 2. Tentukan risk level
+      riskLevel:
+        ind.avgRisk >= 0.6
+          ? "High Risk"
+          : ind.avgRisk >= 0.3
+            ? "Med Risk"
+            : "Low Risk",
+    }))
+    .sort((a, b) => b.avgRisk - a.avgRisk);
+  console.log(sortedIndustries);
 
   return (
     <div className="p-8 space-y-8">
@@ -40,28 +125,28 @@ export default function PortfolioRiskOverview() {
       <div className="grid grid-cols-4 gap-6">
         <StatCard
           title="Merchants "
-          value={portfolioStats.merchantsMonitored}
+          value={merchantData?.stats?.merchantsMonitored?.toString() || ""}
           change={portfolioStats.merchantsMonitoredChange}
           icon={BarChart3}
           color="text-blue-500"
         />
         <StatCard
           title="High Risk"
-          value={portfolioStats.highRisk}
+          value={merchantData?.stats?.high?.toString() || ""}
           change={portfolioStats.highRiskChange}
           icon={AlertTriangle}
           color="text-red-500"
         />
         <StatCard
           title="Warning"
-          value={portfolioStats.warning}
+          value={merchantData?.stats?.warning?.toString() || ""}
           change={portfolioStats.warningChange}
           icon={TrendingUp}
           color="text-orange-500"
         />
         <StatCard
           title="Healthy"
-          value={portfolioStats.healthy}
+          value={merchantData?.stats?.health?.toString() || ""}
           change={portfolioStats.healthyChange}
           icon={CheckCircle}
           color="text-green-500"
@@ -96,17 +181,14 @@ export default function PortfolioRiskOverview() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {atRiskIndustries.map((industry) => (
+              {sortedIndustries?.map((industry, i) => (
                 <div
-                  key={industry.id}
+                  key={i++}
                   className="flex items-center justify-between py-2"
                 >
                   <div>
                     <p className="text-sm font-medium text-foreground">
-                      {industry.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {industry.mcc}
+                      {industry.industry}
                     </p>
                   </div>
                   <span

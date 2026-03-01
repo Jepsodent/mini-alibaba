@@ -31,18 +31,21 @@ export default function MerchantExposure() {
         mcc_risk_weight
       )
     `);
-      console.log(data);
       if (error) throw new Error(error.message);
       const mappedData: AegisMerchant[] =
-        data?.map((m: any) => ({
-          risk_prob: m.risk_prob,
-          cbr_30d: m.cbr_30d,
-          refund_vel_6h: m.refund_vel_6h,
-          current_action: m.current_action,
-          ai_analysis: m.ai_analysis,
-          updated_at: m.updated_at,
-          merchant_baselines: m.merchant_baselines[0], // ambil object pertama
-        })) || [];
+        data
+          ?.map((m: any) => ({
+            risk_prob: m.risk_prob ?? 0,
+            cbr_30d: m.cbr_30d ?? 0,
+            refund_vel_6h: m.refund_vel_6h ?? 0,
+            current_action: m.current_action ?? "Normal",
+            ai_analysis: m.ai_analysis ?? "",
+            updated_at: m.updated_at,
+            merchant_baselines: Array.isArray(m.merchant_baselines)
+              ? m.merchant_baselines[0]
+              : m.merchant_baselines,
+          }))
+          .filter((m) => m.merchant_baselines) || [];
 
       return mappedData;
     },
