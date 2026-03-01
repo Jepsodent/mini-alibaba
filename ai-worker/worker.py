@@ -10,16 +10,23 @@ from pathlib import Path
 # =========================
 # 1. SETUP PATH & ENV (Mencari file dari posisi script)
 # =========================
-base_path = Path(__file__).parent # Ini menunjuk ke folder ai-worker tempat worker.py berada
-env_path = base_path.parent / ".env.local" # Ini mencari .env.local di folder luar
-load_dotenv(dotenv_path=env_path)
+base_path = Path(__file__).parent
+env_path = base_path.parent / ".env.local"
 
+# Cek apakah file .env.local ada (Lokal). Jika tidak ada (GitHub), lewati saja.
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+    print(f"✅ Lokal: Memuat konfigurasi dari {env_path}")
+else:
+    print("☁️ Cloud: File .env.local tidak ditemukan, menggunakan GitHub Secrets.")
+
+# Ambil variabel dengan logika fallback (OR) agar sinkron dengan GitHub & Lokal
 SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print(f"❌ Error: Konfigurasi gagal dimuat dari {env_path}")
-    exit()
+    print(f"❌ Error: Variabel Supabase tidak ditemukan di Environment maupun Secrets!")
+    exit(1) # Keluar dengan kode error agar GitHub Actions memberi tanda merah
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
