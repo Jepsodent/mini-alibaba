@@ -2,26 +2,34 @@ import os
 import joblib
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta, timezone # Tambahkan timezone
+from datetime import datetime, timedelta, timezone
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from pathlib import Path
 
 # =========================
-# 1. SETUP PATH & ENV (Mencari file dari posisi script)
+# 1. SETUP PATH & ENV (SMART & ROBUST)
 # =========================
-if os.path.exists(".env.local"):
-    load_dotenv(".env.local")
-    print("✅ Lokal: Memuat konfigurasi dari .env.local")
+base_path = Path(__file__).parent
+env_path = base_path.parent / ".env.local"
 
-# Ambil variabel dari Environment (GitHub Secrets otomatis masuk ke sini)
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-# Pastikan nama ini SAMA dengan yang kamu tulis di YAML (SUPABASE_SERVICE_KEY)
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+# Cek apakah file .env.local ada. 
+# DI LOKAL: Akan memuat variabel.
+# DI GITHUB: Akan dilewati saja tanpa memicu error merah.
+if env_path.exists():
+    load_dotenv(dotenv_path=env_path)
+    print(f"✅ Konfigurasi dimuat dari {env_path}")
+else:
+    print("☁️ Menjalankan di lingkungan Cloud/GitHub (Menggunakan Secrets)")
 
+# Ambil variabel dengan logika fallback (OR)
+SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
+
+# Pastikan variabel sudah ada sebelum lanjut
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print("❌ Error: Variabel Supabase tidak ditemukan!")
-    exit(1)
+    print(f"❌ Error: Variabel Supabase tidak ditemukan!")
+    exit(1) # Keluar dengan kode error hanya jika benar-benar tidak ada data sama sekali
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
