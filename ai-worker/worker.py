@@ -10,26 +10,21 @@ from pathlib import Path
 # =========================
 # 1. SETUP PATH & ENV (SMART & ROBUST)
 # =========================
-base_path = Path(__file__).parent
-env_path = base_path.parent / ".env.local"
+base_path = Path(__file__).resolve().parent
+env_path = base_path / ".env.local"
 
-# Cek apakah file .env.local ada. 
-# DI LOKAL: Akan memuat variabel.
-# DI GITHUB: Akan dilewati saja tanpa memicu error merah.
 if env_path.exists():
-    load_dotenv(dotenv_path=env_path)
-    print(f"✅ Konfigurasi dimuat dari {env_path}")
+    load_dotenv(env_path)
+    print("✅ Lokal: Memuat konfigurasi dari .env.local")
 else:
-    print("☁️ Menjalankan di lingkungan Cloud/GitHub (Menggunakan Secrets)")
+    print("🚀 Production Mode: Menggunakan GitHub Secrets")
 
-# Ambil variabel dengan logika fallback (OR)
-SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 
-# Pastikan variabel sudah ada sebelum lanjut
 if not SUPABASE_URL or not SUPABASE_KEY:
-    print(f"❌ Error: Variabel Supabase tidak ditemukan!")
-    exit(1) # Keluar dengan kode error hanya jika benar-benar tidak ada data sama sekali
+    print("❌ Error: Variabel Supabase tidak ditemukan!")
+    exit(1)
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
