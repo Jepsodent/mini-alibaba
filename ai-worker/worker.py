@@ -14,8 +14,8 @@ base_path = Path(__file__).parent # Ini menunjuk ke folder ai-worker tempat work
 env_path = base_path.parent / ".env.local" # Ini mencari .env.local di folder luar
 load_dotenv(dotenv_path=env_path)
 
-SUPABASE_URL = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
+SUPABASE_URL = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print(f"❌ Error: Konfigurasi gagal dimuat dari {env_path}")
