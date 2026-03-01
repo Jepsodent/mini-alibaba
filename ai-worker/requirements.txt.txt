@@ -1,5 +1,6 @@
 pandas
-xgboost
-supabase
-scikit-learn
 joblib
+supabase
+python-dotenv
+xgboost
+scikit-learn

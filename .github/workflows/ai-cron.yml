@@ -2,8 +2,8 @@ name: AI Fraud Analyzer Worker
 
 on:
   schedule:
-    - cron: '0 */6 * * *' # Jalan tiap 6 jam
-  workflow_dispatch:      # Bisa diklik manual di GitHub
+    - cron: '0 */6 * * *' # Berjalan otomatis setiap 6 jam
+  workflow_dispatch:      # Menambahkan tombol agar bisa dijalankan manual saat Demo Hackathon
 
 jobs:
   run-ai:
@@ -19,12 +19,14 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install pandas xgboost supabase joblib scikit-learn python-dotenv
+          cd ai-worker
+          pip install -r requirements.txt
 
-      - name: Execute Worker
+      - name: Execute AI Worker
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          # Menyambungkan variabel lingkungan dari GitHub Secrets ke script Python
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
         run: |
           cd ai-worker
           python worker.py
