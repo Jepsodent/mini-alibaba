@@ -37,7 +37,7 @@ model = joblib.load(model_path)
 
 try:
     print("📥 Mengambil data transaksi dari database...")
-    raw_tx = supabase.table("raw_transactions").select("*").execute()
+    raw_tx = supabase.table("raw_transactions").select("*").order("created_at", desc=True).limit(3000).execute()
     df = pd.DataFrame(raw_tx.data)
 
     print("📥 Mengambil data baselines...")
