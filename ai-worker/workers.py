@@ -63,7 +63,7 @@ print(f"📅 Transaksi paling baru tercatat pada: {df['created_at'].max()}")
 # +++++++++++++++++++++++++++++++++++++++++++++
 
 # PASTIKAN SEMUA WAKTU MENJADI UTC
-df['created_at'] = pd.to_datetime(df['created_at'], utc=True)
+df['created_at'] = pd.to_datetime(df['created_at'], format='mixed', utc=True)
 
 
 # ==========================================
