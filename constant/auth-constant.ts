@@ -21,7 +21,5 @@ export const INITIAL_STATE_SIGNUP = {
 
 export const INITIAL_USER = {
     id: "",
-    name: "",
     email: "",
-    avatar_url: ""
 }

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
-import Sidebar from "@/components/sidebar";
 import ReactQueryProvider from "@/providers/react-query-provider";
+import { Toaster } from "sonner";
+import { cookies } from "next/headers";
+import AuthStoreProvider from "@/providers/auth-store-provider";
+import { INITIAL_USER } from "@/constant/auth-constant";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -13,18 +16,25 @@ export const metadata: Metadata = {
   description: "Monitor and manage merchant risk across your portfolio",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const user = JSON.parse(
+    cookieStore.get("user")?.value ?? JSON.stringify(INITIAL_USER),
+  );
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ReactQueryProvider>
-          <div className="min-h-screen">{children}</div>
-          <Analytics />
-        </ReactQueryProvider>
+        <AuthStoreProvider user={user}>
+          <ReactQueryProvider>
+            <div className="min-h-screen">{children}</div>
+            <Analytics />
+            <Toaster />
+          </ReactQueryProvider>
+        </AuthStoreProvider>
       </body>
     </html>
   );

@@ -6,8 +6,12 @@ import { loginSchemaForm, type Login } from "@/validation/auth-validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { startTransition, useActionState, useEffect } from "react";
+import loginPassword from "../action";
+import { INITIAL_STATE_LOGIN } from "@/constant/auth-constant";
+import { toast } from "sonner";
 
 export function LoginForm() {
   const form = useForm<Login>({
@@ -17,10 +21,29 @@ export function LoginForm() {
       password: "",
     },
   });
+  const [loginState, loginAction, isPendingLogin] = useActionState(
+    loginPassword,
+    INITIAL_STATE_LOGIN,
+  );
 
-  const onSubmit = (data: Login) => {
-    console.log(data);
+  const onSubmit = async (data: Login) => {
+    const formData = new FormData();
+    Object.entries(data).map(([key, value]) => {
+      formData.append(key, value);
+    });
+    form.reset();
+    startTransition(() => {
+      loginAction(formData);
+    });
   };
+
+  useEffect(() => {
+    if (loginState.status === "success") {
+      toast.success("Login Successfully");
+    } else if (loginState.status === "error") {
+      toast.error("Login Failed", { description: loginState.errors?._form[0] });
+    }
+  }, [loginState]);
 
   return (
     <div className="w-full max-w-md mx-auto z-10">
@@ -47,6 +70,9 @@ export function LoginForm() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
+              <Label className="text-green-700 text-xs">
+                paylabs@gmail.com (for hackathon purposes)
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -57,7 +83,7 @@ export function LoginForm() {
                     ? "border-destructive focus-visible:ring-destructive"
                     : ""
                 }
-                // disabled={isLoading}
+                disabled={isPendingLogin}
               />
               {form.formState.errors.email && (
                 <p className="text-xs text-destructive font-medium">
@@ -67,15 +93,11 @@ export function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="#"
-                  className="text-xs font-medium text-primary hover:underline hover:text-primary/80 transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
+              <Label className="text-green-700 text-xs">
+                12345678 (for hackathon purposes)
+              </Label>
+
               <Input
                 id="password"
                 type="password"
@@ -86,7 +108,7 @@ export function LoginForm() {
                     ? "border-destructive focus-visible:ring-destructive"
                     : ""
                 }
-                // disabled={isLoading}
+                disabled={isPendingLogin}
               />
               {form.formState.errors.password && (
                 <p className="text-xs text-destructive font-medium">
@@ -99,17 +121,15 @@ export function LoginForm() {
           <Button
             type="submit"
             className="w-full h-11 text-base font-semibold"
-            // disabled={isLoading}
+            disabled={isPendingLogin}
           >
-            {/* {isLoading ? (
+            {isPendingLogin ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 text-primary-foreground animate-spin" />
-                Signing in...
               </>
             ) : (
               "Sign In"
-            )} */}
-            Sign In
+            )}
           </Button>
         </form>
       </div>
