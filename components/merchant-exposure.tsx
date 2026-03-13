@@ -1,17 +1,13 @@
 "use client";
 
 import { Search, Plus, ArrowUpDown } from "lucide-react";
-import Link from "next/link";
-import mockData from "@/lib/mock-data.json";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import MerchantTable, { AegisMerchant } from "./merchant-table";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 
 export default function MerchantExposure() {
-  // const { merchants } = mockData
   const supabase = createClient();
 
   const {
