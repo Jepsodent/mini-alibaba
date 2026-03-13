@@ -22,9 +22,18 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
-  const user = JSON.parse(
-    cookieStore.get("user")?.value ?? JSON.stringify(INITIAL_USER),
-  );
+
+  const userCookie = cookieStore.get("user")?.value;
+  const user = (() => {
+    if (!userCookie) {
+      return INITIAL_USER;
+    }
+    try {
+      return JSON.parse(userCookie);
+    } catch (error) {
+      return INITIAL_USER;
+    }
+  })();
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
