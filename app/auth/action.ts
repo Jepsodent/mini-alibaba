@@ -22,7 +22,6 @@ export default async function loginPassword(prevState: AuthFormState, formData: 
             }
         }
     }
-    console.log(validateFields.data)
 
     const supabase = await createClient()
     const { error, data: { user } } = await supabase.auth.signInWithPassword(validateFields.data)

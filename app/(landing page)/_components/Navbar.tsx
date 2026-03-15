@@ -1,25 +1,14 @@
 "use client";
-import { logout } from "@/action/auth-action";
 import { Button } from "@/components/ui/button";
+import { useLogout } from "@/hooks/use-logout";
 import { useAuthStore } from "@/stores/auth-store";
 import { ShieldCheck } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 
 export default function Navbar() {
   const user = useAuthStore((state) => state.User);
-  const router = useRouter();
+  const handleLogout = useLogout();
 
-  const logoutAction = async () => {
-    const { status, message } = await logout();
-    if (status === "success") {
-      toast.success(message);
-      router.push("/");
-    } else {
-      toast.error("Logout Failed", { description: message });
-    }
-  };
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -44,7 +33,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           {user.id ? (
             <Button
-              onClick={logoutAction}
+              onClick={handleLogout}
               variant="outline"
               className="text-sm"
             >
