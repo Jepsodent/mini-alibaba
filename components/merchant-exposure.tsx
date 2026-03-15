@@ -1,50 +1,57 @@
 "use client";
 
-import { Search, Plus, ArrowUpDown } from "lucide-react";
+import { useState } from "react";
+import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import MerchantTable, { AegisMerchant } from "./merchant-table";
-import { useQuery } from "@tanstack/react-query";
-import { createClient } from "@/lib/supabase/client";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import MerchantTable from "./merchant-table";
+import useDebounce from "@/hooks/use-debounce";
+import { useMerchants } from "@/hooks/use-merchants";
+import {
+  RISK_STATUS_OPTIONS,
+  INDUSTRY_OPTIONS,
+  SORT_OPTIONS,
+  DEFAULT_MERCHANT_FILTERS,
+  type RiskStatusValue,
+  type IndustryValue,
+  type SortValue,
+} from "@/constant/merchant-constant";
 
 export default function MerchantExposure() {
-  const supabase = createClient();
+  // ── Local filter state ──
+  const [search, setSearch] = useState(DEFAULT_MERCHANT_FILTERS.search);
+  const [debouncedSearch, setDebouncedSearch] = useState(
+    DEFAULT_MERCHANT_FILTERS.search,
+  );
+  const [riskStatus, setRiskStatus] = useState<RiskStatusValue>(
+    DEFAULT_MERCHANT_FILTERS.riskStatus,
+  );
+  const [industry, setIndustry] = useState<IndustryValue>(
+    DEFAULT_MERCHANT_FILTERS.industry,
+  );
+  const [sort, setSort] = useState<SortValue>(DEFAULT_MERCHANT_FILTERS.sort);
 
-  const {
-    data: merchants,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["merchants"],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("aegis_ai_features").select(`
-      risk_prob,cbr_30d,refund_vel_6h,current_action,
-      merchant_baselines (
-        name,
-        industry,
-        merchant_id,
-        avg_daily_vol,
-        mcc_risk_weight
-      )
-    `);
-      if (error) throw new Error(error.message);
-      const mappedData: AegisMerchant[] =
-        data
-          ?.map((m: any) => ({
-            risk_prob: m.risk_prob ?? 0,
-            cbr_30d: m.cbr_30d ?? 0,
-            refund_vel_6h: m.refund_vel_6h ?? 0,
-            current_action: m.current_action ?? "Normal",
-            ai_analysis: m.ai_analysis ?? "",
-            updated_at: m.updated_at,
-            merchant_baselines: Array.isArray(m.merchant_baselines)
-              ? m.merchant_baselines[0]
-              : m.merchant_baselines,
-          }))
-          .filter((m) => m.merchant_baselines) || [];
+  const debounce = useDebounce();
 
-      return mappedData;
-    },
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    debounce(() => setDebouncedSearch(value), 500);
+  };
+
+  // ── Data fetching (hook handles Supabase + filter/sort) ──
+  const { data: merchants, isLoading } = useMerchants({
+    search: debouncedSearch,
+    riskStatus,
+    industry,
+    sort,
   });
 
   return (
@@ -72,73 +79,113 @@ export default function MerchantExposure() {
           <div className="flex-1 min-w-64 relative">
             <Search
               size={18}
-              className="absolute left-3 top-2.5 text-muted-foreground"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
             />
-            <input
+            <Input
               type="text"
               placeholder="Search by Merchant Name or MID..."
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10"
             />
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Risk Status Filter */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
                 Risk Status:
               </span>
-              <button className="text-sm px-3 py-2 border border-border rounded-lg hover:bg-muted text-foreground flex items-center gap-2">
-                All
-                <ArrowUpDown size={12} />
-              </button>
+              <Select
+                value={riskStatus}
+                onValueChange={(v) => setRiskStatus(v as RiskStatusValue)}
+              >
+                <SelectTrigger className="min-w-[110px]">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RISK_STATUS_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
+            {/* Industry Filter */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Industry:</span>
-              <button className="text-sm px-3 py-2 border border-border rounded-lg hover:bg-muted text-foreground flex items-center gap-2">
-                All
-                <ArrowUpDown size={12} />
-              </button>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Industry:
+              </span>
+              <Select
+                value={industry}
+                onValueChange={(v) => setIndustry(v as IndustryValue)}
+              >
+                <SelectTrigger className="min-w-[130px]">
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDUSTRY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
+            {/* Sort */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Sort:</span>
-              <button className="text-sm px-3 py-2 border border-border rounded-lg hover:bg-muted text-foreground flex items-center gap-2">
-                Highest Chargeback Ratio
-                <ArrowUpDown size={12} />
-              </button>
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Sort:
+              </span>
+              <Select
+                value={sort}
+                onValueChange={(v) => setSort(v as SortValue)}
+              >
+                <SelectTrigger className="min-w-[200px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>
       </Card>
+
       {/* Table */}
       <Card className="overflow-hidden">
-        <MerchantTable merchants={merchants} />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <p className="text-sm text-muted-foreground">
+                Loading merchants…
+              </p>
+            </div>
+          </div>
+        ) : merchants && merchants.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Search size={40} className="text-muted-foreground/40 mb-3" />
+            <p className="text-muted-foreground font-medium">
+              No merchants found
+            </p>
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              Try adjusting your search or filters.
+            </p>
+          </div>
+        ) : (
+          <MerchantTable merchants={merchants} />
+        )}
       </Card>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing 1 to 6 of 24 results
-        </p>
-        <div className="flex items-center gap-2">
-          <button className="px-2 py-1 text-muted-foreground hover:text-foreground disabled:opacity-50">
-            &lt;
-          </button>
-          <button className="px-3 py-1 bg-primary text-primary-foreground rounded">
-            1
-          </button>
-          <button className="px-3 py-1 text-muted-foreground hover:text-foreground">
-            2
-          </button>
-          <button className="px-3 py-1 text-muted-foreground hover:text-foreground">
-            3
-          </button>
-          <button className="px-2 py-1 text-muted-foreground hover:text-foreground">
-            &gt;
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
