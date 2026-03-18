@@ -83,9 +83,7 @@ export default function PortfolioRiskOverview() {
           avgRisk: totalRisk / count,
         }),
       );
-      console.log(industryAverages);
 
-      console.log(data, stats);
       return { stats, industryAverages };
     },
   });
@@ -102,7 +100,6 @@ export default function PortfolioRiskOverview() {
             : "Low Risk",
     }))
     .sort((a, b) => b.avgRisk - a.avgRisk);
-  console.log(sortedIndustries);
 
   return (
     <div className="p-8 space-y-8">

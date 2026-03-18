@@ -2,50 +2,48 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
-import Sidebar from "@/components/sidebar";
 import ReactQueryProvider from "@/providers/react-query-provider";
+import { Toaster } from "sonner";
+import { cookies } from "next/headers";
+import AuthStoreProvider from "@/providers/auth-store-provider";
+import { INITIAL_USER } from "@/constant/auth-constant";
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Merchant Risk Management - Aegis",
+  title: "Aegis",
   description: "Monitor and manage merchant risk across your portfolio",
-  generator: "v0.app",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+
+  const userCookie = cookieStore.get("user")?.value;
+  const user = (() => {
+    if (!userCookie) {
+      return INITIAL_USER;
+    }
+    try {
+      return JSON.parse(userCookie);
+    } catch (error) {
+      return INITIAL_USER;
+    }
+  })();
   return (
-    <html lang="en"suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
-        <ReactQueryProvider>
-          <div className="flex h-screen bg-background">
-            <Sidebar />
-            <div className="flex-1 overflow-auto">{children}</div>
-          </div>
-          <Analytics />
-        </ReactQueryProvider>
+        <AuthStoreProvider user={user}>
+          <ReactQueryProvider>
+            <div className="min-h-screen">{children}</div>
+            <Analytics />
+            <Toaster />
+          </ReactQueryProvider>
+        </AuthStoreProvider>
       </body>
     </html>
   );
