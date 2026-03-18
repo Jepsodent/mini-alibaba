@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,13 +12,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
 import MerchantTable from "./merchant-table";
 import useDebounce from "@/hooks/use-debounce";
 import { useMerchants } from "@/hooks/use-merchants";
+import { usePagination } from "@/hooks/use-pagination";
 import {
   RISK_STATUS_OPTIONS,
   INDUSTRY_OPTIONS,
   SORT_OPTIONS,
+  PAGE_SIZE_OPTIONS,
   DEFAULT_MERCHANT_FILTERS,
   type RiskStatusValue,
   type IndustryValue,
@@ -54,6 +65,30 @@ export default function MerchantExposure() {
     sort,
   });
 
+  // ── Pagination ──
+  const {
+    currentPage,
+    pageSize,
+    totalPages,
+    startIndex,
+    endIndex,
+    setPage,
+    nextPage,
+    prevPage,
+    setPageSize,
+    resetPage,
+    pageRange,
+  } = usePagination(merchants?.length ?? 0);
+
+  // Reset to page 1 whenever any filter changes
+  useEffect(() => {
+    resetPage();
+  }, [debouncedSearch, riskStatus, industry, sort, resetPage]);
+
+  // Slice the data for the current page
+  const paginatedMerchants = merchants?.slice(startIndex, endIndex);
+  const totalItems = merchants?.length ?? 0;
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
@@ -66,10 +101,6 @@ export default function MerchantExposure() {
             Monitor exposure and prevent chargebacks across your portfolio.
           </p>
         </div>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus size={16} className="mr-2" />
-          Onboard Merchant
-        </Button>
       </div>
 
       {/* Controls */}
@@ -183,9 +214,97 @@ export default function MerchantExposure() {
             </p>
           </div>
         ) : (
-          <MerchantTable merchants={merchants} />
+          <MerchantTable merchants={paginatedMerchants} />
         )}
       </Card>
+
+      {/* Pagination */}
+      {!isLoading && totalItems > 0 && (
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* Left: results text + rows-per-page */}
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              Showing{" "}
+              <span className="font-medium text-foreground">
+                {startIndex + 1}
+              </span>{" "}
+              to{" "}
+              <span className="font-medium text-foreground">{endIndex}</span>{" "}
+              of{" "}
+              <span className="font-medium text-foreground">{totalItems}</span>{" "}
+              results
+            </p>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                Rows per page:
+              </span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(v) => setPageSize(Number(v))}
+              >
+                <SelectTrigger className="w-[70px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Right: page navigation */}
+          <Pagination className="w-auto mx-0">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={prevPage}
+                  aria-disabled={currentPage <= 1}
+                  className={
+                    currentPage <= 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+
+              {pageRange.map((page, idx) =>
+                page === "ellipsis" ? (
+                  <PaginationItem key={`ellipsis-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      isActive={page === currentPage}
+                      onClick={() => setPage(page)}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ),
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={nextPage}
+                  aria-disabled={currentPage >= totalPages}
+                  className={
+                    currentPage >= totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

@@ -67,12 +67,11 @@ export default function Workflow() {
             {/* Step 3 */}
             <div className="relative flex flex-col md:flex-row items-center group">
               <div className="md:w-1/2 md:pr-16 md:text-right md:order-1 order-2 mt-6 md:mt-0 pl-20 w-full">
-                <h3 className="text-2xl font-bold mb-3">
-                  3. Auto-Prevent & Resolve
-                </h3>
+                <h3 className="text-2xl font-bold mb-3">3. Auto-Prevent</h3>
                 <p className="text-muted-foreground text-lg">
-                  High-risk transactions are blocked automatically. For
-                  disputes, Aegis generates evidence to help you win.
+                  High-risk transactions automatically trigger reduced
+                  settlement percentages, preventing full (100%) settlement and
+                  minimizing potential manipulation.{" "}
                 </p>
               </div>
               <div className="absolute left-0 top-0 md:top-1/2 md:left-1/2 w-16 h-16 rounded-full bg-background border-4 border-muted flex items-center justify-center md:-translate-x-1/2 md:-translate-y-1/2 z-10 group-hover:border-chart-4/50 transition-colors duration-300 shadow-sm">

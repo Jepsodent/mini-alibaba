@@ -70,9 +70,9 @@ export function LoginForm() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Label className="text-green-700 text-xs">
+              <p className="text-green-700 text-xs">
                 paylabs@gmail.com (for hackathon purposes)
-              </Label>
+              </p>
               <Input
                 id="email"
                 type="email"
@@ -94,9 +94,9 @@ export function LoginForm() {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Label className="text-green-700 text-xs">
+              <p className="text-green-700 text-xs">
                 12345678 (for hackathon purposes)
-              </Label>
+              </p>
 
               <Input
                 id="password"
