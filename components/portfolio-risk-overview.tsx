@@ -202,10 +202,6 @@ export default function PortfolioRiskOverview() {
                 </div>
               ))}
             </div>
-            <button className="text-xs text-primary font-medium mt-3 hover:underline flex items-center gap-1">
-              View All Categories
-              <ChevronRight size={12} />
-            </button>
           </CardContent>
         </Card>
       </div>
@@ -214,10 +210,6 @@ export default function PortfolioRiskOverview() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
           <CardTitle className="text-base">Recent Critical Alerts</CardTitle>
-          <button className="text-primary text-sm font-medium hover:underline flex items-center gap-1">
-            View All Logs
-            <ChevronRight size={14} />
-          </button>
         </CardHeader>
         <CardContent>
           <AlertsTable alerts={recentAlerts} />
