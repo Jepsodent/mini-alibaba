@@ -210,7 +210,7 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
                 className="bg-blue-600"
               >
                 <Sparkles size={14} className="mr-2" />{" "}
-                {isLoadingAi ? "Menganalisis..." : "Live Alibaba AI"}
+                {isLoadingAi ? "Menganalisis..." : "Live Gemini AI"}
               </Button>
             </CardHeader>
             <CardContent>
