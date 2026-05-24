@@ -185,7 +185,7 @@ export default function SeederPage() {
           </CardContent>
         </Card>
 
-        {/* 🔥 NEW UI: THE LIVE INJECTION LOGS */}
+        {/* NEW UI: THE LIVE INJECTION LOGS */}
         {injectedData.length > 0 && (
           <Card className="border-green-500/50 shadow-md bg-green-500/5 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <CardHeader className="pb-3">
