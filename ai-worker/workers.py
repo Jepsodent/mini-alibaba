@@ -57,18 +57,13 @@ if df.empty:
     print("No transactions found.")
     exit()
 
-# +++ TAMBAHKAN 2 BARIS INI UNTUK DEBUGGING +++
 print(f"📈 TOTAL SELURUH DATA MENTAH DI DATABASE (Tanpa Filter): {len(df)} baris")
 print(f"📅 Transaksi paling baru tercatat pada: {df['created_at'].max()}")
-# +++++++++++++++++++++++++++++++++++++++++++++
 
-# PASTIKAN SEMUA WAKTU MENJADI UTC
 df['created_at'] = pd.to_datetime(df['created_at'], format='mixed', utc=True)
 
 
-# ==========================================
-# DEMO MODE FILTER
-# ==========================================
+
 print(f"🔍 Mencari data DEMO setelah: {cutoff_demo}")
 data_live_global = df[df['created_at'] >= cutoff_demo]
 print(f"📊 Ditemukan {len(data_live_global)} transaksi dalam jendela demo 24 jam.")
@@ -77,9 +72,7 @@ if data_live_global.empty:
     print("⚠️ Peringatan: Tidak ada data dalam 24 jam terakhir. Menggunakan semua data sebagai fallback!")
     data_live_global = df 
 
-# ==========================================
 # PROCESS PER MERCHANT
-# ==========================================
 merchant_ids = df['merchant_id'].unique()
 
 for merchant_id in merchant_ids:
@@ -110,7 +103,6 @@ for merchant_id in merchant_ids:
     # Gunakan data_live_global khusus merchant ini
     data_demo_window = data_live_global[data_live_global['merchant_id'] == merchant_id]
     
-    # Tahan typo: cari 'refund' atau 'refunded'
     refund_count_6h = len(data_demo_window[data_demo_window['status'].isin(['refund', 'refunded'])])
 
     refund_vel_6h = (refund_count_6h / avg_refund_6h) if avg_refund_6h > 0 else 0.0

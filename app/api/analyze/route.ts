@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     if (data) {
       return NextResponse.json({ success: true, aiResponse: data });
     } else {
-      console.error("Respon Alibaba aneh:", data);
+      console.error("Respon LLM aneh:", data);
       return NextResponse.json({ success: false, error: "Gagal membaca respon AI" }, { status: 500 });
     }
 

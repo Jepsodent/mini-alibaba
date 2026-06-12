@@ -218,7 +218,7 @@ export default function MerchantDetail({ merchantId }: MerchantDetailProps) {
                 <p className="text-sm text-blue-800 leading-relaxed">
                   {liveAiAnalysis ||
                     rawDetail.ai_analysis ||
-                    "Klik 'Live Alibaba AI' untuk analisis mendalam."}
+                    "Klik 'Live Gemini AI' untuk analisis mendalam."}
                 </p>
               </div>
             </CardContent>
